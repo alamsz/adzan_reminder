@@ -15,15 +15,14 @@ def parse_adzan(location="yogyakarta"):
 
     prayer_list = generate_24_hour_time_adzan(adzan_token, prayer, location)
     today_date = datetime.utcnow() + timedelta(hours=7)
-    print 'time now ' + str(today_date) +'\n'
+    print 'time now ' + str(today_date) + '\n'
     for key, value in prayer_list.items():
-        print key +'-'+ value
+        print key + '-' + value
         time_pray = datetime.strptime(value.strip(), DATE_FORMAT)
 
         if time_pray <= today_date <= time_pray + timedelta(minutes=3):
-            text = 'Saatnya {0} - {1} untuk daerah {2}'.format(key,
-                                                                     time_pray,
-                                                                     location)
+            text = '<!here|here> Saatnya {0} - {1} untuk daerah {2}'.format(
+                key, time_pray, location)
             slack_post_url = 'https://hooks.slack.com/services/{0}'.format(
                 slack_token)
 
