@@ -12,8 +12,9 @@ prayer = ["fajr", "dhuhr", "asr", "maghrib", "isha"]
 def parse_adzan(location="yogyakarta"):
     slack_token = os.getenv('SLACK_TOKEN')
     adzan_token = os.getenv('ADZAN_API_KEY')
-
-    prayer_list = generate_24_hour_time_adzan(adzan_token, prayer, location)
+    print slack_token
+    prayer_list, attachment = generate_24_hour_time_adzan(adzan_token, prayer,
+                                                          location)
     today_date = datetime.utcnow() + timedelta(hours=7)
     print 'time now ' + str(today_date) + '\n'
     for key, value in prayer_list.items():
@@ -25,26 +26,38 @@ def parse_adzan(location="yogyakarta"):
                 key, time_pray, location)
             slack_post_url = 'https://hooks.slack.com/services/{0}'.format(
                 slack_token)
+            if key == 'fajr':
+                payload = {'channel': '#sholat-reminder',
+                           'username': 'adzan_bot', 'text': text,
+                           'attachments': attachment}
+            else:
+                payload = {'channel': '#sholat-reminder',
+                           'username': 'adzan_bot', 'text': text}
 
-            payload = {'channel': '#sholat-reminder', 'username': 'adzan_bot',
-                       'text': text}
-
-            r = requests.post(slack_post_url, data=json.dumps(payload))
+            requests.post(slack_post_url, data=json.dumps(payload))
 
             print payload
             break
 
 
-def generate_24_hour_time_adzan(adzan_token, prayer, location):
+def generate_24_hour_time_adzan(adzan_token, prayers, location):
     prayer_list = {}
     day = datetime.utcnow() + timedelta(hours=7)
     input_date = day.strftime('%d-%m-%Y')
+    adzan_daily = "Jadwal Sholat tanggal {} untuk wilayah {}".format(
+        input_date, location)
+    fields = []
+    attachment = []
     if os.path.isfile('{}.json'.format(input_date)):
         print 'file found'
         with open('{}.json'.format(input_date)) as fp:
             for line in fp:
                 prayer_time_line = line.split(';')
+                fields.append({"title": prayer_time_line[0].upper(),
+                               "value": prayer_time_line[1], "short": True})
                 prayer_list[prayer_time_line[0]] = prayer_time_line[1]
+        attachment.append(
+            {'title': adzan_daily, 'fields': fields, 'mrkdwn_in': ["text"]})
     else:
         url = os.path.join('http://muslimsalat.com/{0}/'
                            '{1}.json?key={2}'.format(location, input_date,
@@ -53,13 +66,14 @@ def generate_24_hour_time_adzan(adzan_token, prayer, location):
         response_json = r.json()['items'][0]
         print 'no file found'
         with open('{}.json'.format(input_date), 'w') as prayer_file:
-            for i in prayer:
+            for i in prayers:
                 input_time = response_json[i]
                 new_time = datetime.strptime(
                     "{0} {1}".format(input_date, input_time), DATE_FORMAT)
                 prayer_list[i] = new_time.strftime(DATE_FORMAT)
                 prayer_file.write('{0};{1}\n'.format(i, prayer_list[i]))
-    return prayer_list
+
+    return prayer_list, attachment
 
 
 if __name__ == "__main__":
