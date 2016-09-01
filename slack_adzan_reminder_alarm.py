@@ -35,8 +35,7 @@ def parse_adzan(location="yogyakarta"):
             get_random_ayah_attachment(attachment)
             payload = {'channel': '#sholat-reminder', 'username': 'adzan_bot',
                        'text': text, 'attachments': attachment}
-            json.dumps(payload)
-            # requests.post(slack_post_url, data=json.dumps(payload))
+            requests.post(slack_post_url, data=json.dumps(payload))
 
             print payload
             break
@@ -49,15 +48,16 @@ def get_random_ayah_attachment(attachment):
                               '0}/quran-simple'.format(random_ayah))
         r_terjemah = requests.get('http://api.globalquran.com/ayah/{'
                                   '0}/id.muntakhab'.format(random_ayah))
-        ayah = 'surah {0} ayah {1} '.format(
-            r_arab.json()['quran']['quran-simple'][str(random_ayah)]['surah'],
-            r_arab.json()['quran']['quran-simple'][str(random_ayah)]['ayah'])
+        quran = r_arab.json()['quran']['quran-simple'][str(random_ayah)]
+        lit = r_terjemah.json()['quran']['id.muntakhab'][str(random_ayah)]
+
+        ayah = 'Surah {0} Ayah {1} '.format(quran['surah'], quran['ayah'])
         fields = []
-        fields.append({'title': r_arab.json()['quran']['quran-simple'][
-            str(random_ayah)]['verse'], 'value':
-                           r_terjemah.json()['quran']['id.muntakhab'][
-                               str(random_ayah)]['verse']})
-        attachment.append({'title': ayah, 'fields': fields, 'mrkdwn_in': ["text"]})
+
+        fields.append({'title': quran['verse'], 'value':
+                           lit['verse']})
+        attachment.append(
+            {'title': ayah, 'fields': fields, 'mrkdwn_in': ["text"]})
     except Exception as e:
         print e.message
     print attachment
