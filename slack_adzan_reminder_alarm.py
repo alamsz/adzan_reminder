@@ -15,12 +15,13 @@ def parse_adzan(location="yogyakarta"):
     print slack_token
     prayer_list, attachment = generate_24_hour_time_adzan(adzan_token, prayer,
                                                           location)
+    get_random_ayah_attachment(attachment)
     today_date = datetime.utcnow() + timedelta(hours=7)
     print 'time now ' + str(today_date) + '\n'
     for key, value in prayer_list.items():
         print key + '-' + value
         time_pray = datetime.strptime(value.strip(), DATE_FORMAT)
-        get_random_ayah_attachment(attachment)
+
         if time_pray <= today_date <= time_pray + timedelta(minutes=3):
             text = '<!here|here> Saatnya {0} - {1} untuk daerah {2}'.format(
                 key, time_pray, location)
