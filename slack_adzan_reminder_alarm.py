@@ -1,6 +1,6 @@
-import json
 import os
 from datetime import datetime, timedelta
+from random import randint
 
 import requests
 
@@ -20,7 +20,7 @@ def parse_adzan(location="yogyakarta"):
     for key, value in prayer_list.items():
         print key + '-' + value
         time_pray = datetime.strptime(value.strip(), DATE_FORMAT)
-
+        get_random_ayah_attachment(attachment)
         if time_pray <= today_date <= time_pray + timedelta(minutes=3):
             text = '<!here|here> Saatnya {0} - {1} untuk daerah {2}'.format(
                 key, time_pray, location)
@@ -38,6 +38,25 @@ def parse_adzan(location="yogyakarta"):
 
             print payload
             break
+
+
+def get_random_ayah_attachment(attachment):
+    random_ayah = randint(1, 6236)
+    r_arab = requests.get('http://api.globalquran.com/ayah/{'
+                          '0}/quran-simple'.format(random_ayah))
+    r_terjemah = requests.get('http://api.globalquran.com/ayah/{'
+                              '0}/id.muntakhab'.format(random_ayah))
+    print r_arab.json()
+    ayah = 'surah {0} ayah {1} '.format(
+        r_arab.json()['quran']['quran-simple'][str(random_ayah)]['surah'],
+        r_arab.json()['quran']['quran-simple'][str(random_ayah)]['ayah'])
+    fields = []
+    fields.append({'title': r_arab.json()['quran']['quran-simple'][
+        str(random_ayah)]['verse'], 'value':
+                       r_terjemah.json()['quran']['id.muntakhab'][
+                           str(random_ayah)]['verse']})
+    attachment.append({'title': ayah, 'fields': fields, 'mrkdwn_in': ["text"]})
+    print attachment
 
 
 def generate_24_hour_time_adzan(adzan_token, prayers, location):
