@@ -1,3 +1,4 @@
+import json
 import os
 from datetime import datetime, timedelta
 from random import randint
@@ -12,10 +13,10 @@ prayer = ["fajr", "dhuhr", "asr", "maghrib", "isha"]
 def parse_adzan(location="yogyakarta"):
     slack_token = os.getenv('SLACK_TOKEN')
     adzan_token = os.getenv('ADZAN_API_KEY')
-    print slack_token
+    slack_post_url = 'https://hooks.slack.com/services/{0}'.format(slack_token)
     prayer_list, attachment = generate_24_hour_time_adzan(adzan_token, prayer,
                                                           location)
-    get_random_ayah_attachment(attachment)
+
     today_date = datetime.utcnow() + timedelta(hours=7)
     print 'time now ' + str(today_date) + '\n'
     for key, value in prayer_list.items():
@@ -23,40 +24,42 @@ def parse_adzan(location="yogyakarta"):
         time_pray = datetime.strptime(value.strip(), DATE_FORMAT)
 
         if time_pray <= today_date <= time_pray + timedelta(minutes=3):
+
             text = '<!here|here> Saatnya {0} - {1} untuk daerah {2}'.format(
                 key, time_pray, location)
-            slack_post_url = 'https://hooks.slack.com/services/{0}'.format(
-                slack_token)
-            if key == 'fajr':
-                payload = {'channel': '#sholat-reminder',
-                           'username': 'adzan_bot', 'text': text,
-                           'attachments': attachment}
-            else:
-                payload = {'channel': '#sholat-reminder',
-                           'username': 'adzan_bot', 'text': text}
 
-            requests.post(slack_post_url, data=json.dumps(payload))
+            # only prints sholat schedule when fajr, otherwise empty attachment
+            if key != 'fajr':
+                attachment = []
+
+            get_random_ayah_attachment(attachment)
+            payload = {'channel': '#sholat-reminder', 'username': 'adzan_bot',
+                       'text': text, 'attachments': attachment}
+            json.dumps(payload)
+            # requests.post(slack_post_url, data=json.dumps(payload))
 
             print payload
             break
 
 
 def get_random_ayah_attachment(attachment):
-    random_ayah = randint(1, 6236)
-    r_arab = requests.get('http://api.globalquran.com/ayah/{'
-                          '0}/quran-simple'.format(random_ayah))
-    r_terjemah = requests.get('http://api.globalquran.com/ayah/{'
-                              '0}/id.muntakhab'.format(random_ayah))
-    print r_arab.json()
-    ayah = 'surah {0} ayah {1} '.format(
-        r_arab.json()['quran']['quran-simple'][str(random_ayah)]['surah'],
-        r_arab.json()['quran']['quran-simple'][str(random_ayah)]['ayah'])
-    fields = []
-    fields.append({'title': r_arab.json()['quran']['quran-simple'][
-        str(random_ayah)]['verse'], 'value':
-                       r_terjemah.json()['quran']['id.muntakhab'][
-                           str(random_ayah)]['verse']})
-    attachment.append({'title': ayah, 'fields': fields, 'mrkdwn_in': ["text"]})
+    try:
+        random_ayah = randint(1, 6236)
+        r_arab = requests.get('http://api.globalquran.com/ayah/{'
+                              '0}/quran-simple'.format(random_ayah))
+        r_terjemah = requests.get('http://api.globalquran.com/ayah/{'
+                                  '0}/id.muntakhab'.format(random_ayah))
+        ayah = 'surah {0} ayah {1} '.format(
+            r_arab.json()['quran']['quran-simple'][str(random_ayah)]['surah'],
+            r_arab.json()['quran']['quran-simple'][str(random_ayah)]['ayah'])
+        fields = []
+        fields.append({'title': r_arab.json()['quran']['quran-simple'][
+            str(random_ayah)]['verse'], 'value':
+                           r_terjemah.json()['quran']['id.muntakhab'][
+                               str(random_ayah)]['verse']})
+        attachment.append({'title': ayah, 'fields': fields, 'mrkdwn_in': ["text"]})
+    except Exception as e:
+        print e.message
     print attachment
 
 
