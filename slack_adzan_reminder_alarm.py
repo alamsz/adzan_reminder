@@ -52,12 +52,14 @@ def get_random_ayah_attachment(attachment):
         lit = r_terjemah.json()['quran']['id.muntakhab'][str(random_ayah)]
 
         ayah = 'Surah {0} Ayah {1} '.format(quran['surah'], quran['ayah'])
+        audio = 'http://audio.globalquran.com/ar.abdulbasitmurattal/mp3' \
+                '/64kbs/{0}.mp3'.format(random_ayah)
         fields = []
 
-        fields.append({'title': quran['verse'], 'value':
-                           lit['verse']})
+        fields.append({'title': quran['verse'], 'value': lit['verse']})
         attachment.append(
-            {'title': ayah, 'fields': fields, 'mrkdwn_in': ["text"]})
+            {'title': ayah, 'title_link': audio, 'fields': fields,
+             'mrkdwn_in': ["text"]})
     except Exception as e:
         print e.message
     print attachment
