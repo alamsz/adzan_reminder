@@ -9,11 +9,11 @@ DATE_FORMAT = '%d-%m-%Y %I:%M %p'
 
 prayer = ["fajr", "dhuhr", "asr", "maghrib", "isha"]
 
-
+adzan_token = os.getenv('ADZAN_API_KEY')
 def parse_adzan(location="yogyakarta"):
-    slack_token = os.getenv('SLACK_TOKEN')
-    adzan_token = os.getenv('ADZAN_API_KEY')
-    slack_post_url = 'https://hooks.slack.com/services/{0}'.format(slack_token)
+
+
+
     prayer_list, attachment = generate_24_hour_time_adzan(adzan_token, prayer,
                                                           location)
 
@@ -35,11 +35,21 @@ def parse_adzan(location="yogyakarta"):
             get_random_ayah_attachment(attachment)
             payload = {'channel': '#sholat-reminder', 'username': 'adzan_bot',
                        'text': text, 'attachments': attachment}
-            requests.post(slack_post_url, data=json.dumps(payload))
 
-            print payload
-            break
 
+            return payload
+
+def get_today_adzan(location="yogyakarta"):
+    prayer_list, attachment = generate_24_hour_time_adzan(adzan_token, prayer,
+                                                          location)
+    text = 'Jadwal Sholat hari ini'
+    return text, attachment
+
+def post_adzan(location="yogyakarta"):
+    slack_token = os.getenv('SLACK_TOKEN')
+    payload = parse_adzan(location)
+    slack_post_url = 'https://hooks.slack.com/services/{0}'.format(slack_token)
+    requests.post(slack_post_url, data=json.dumps(payload))
 
 def get_random_ayah_attachment(attachment):
     try:
