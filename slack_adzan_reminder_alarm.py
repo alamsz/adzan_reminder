@@ -109,7 +109,3 @@ def generate_24_hour_time_adzan(adzan_token, prayers, location):
                 prayer_file.write('{0};{1}\n'.format(i, prayer_list[i]))
 
     return prayer_list, attachment
-
-
-if __name__ == "__main__":
-    parse_adzan()
