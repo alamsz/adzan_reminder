@@ -135,7 +135,7 @@ def generate_24_hour_time_adzan(adzan_token, prayers, location, prayer_day='toda
 def parse_command(command, channel):
     if command[0] == 'adzan':
         location = 'yogyakarta'
-        if command > 2:
+        if command.__len__() > 2:
             location = command[2]
         return get_adzan_list(command[1], location)
 
