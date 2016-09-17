@@ -107,6 +107,7 @@ def generate_24_hour_time_adzan(adzan_token, prayers, location, prayer_day='toda
         url = os.path.join('http://muslimsalat.com/{0}/'
                            '{1}.json?key={2}'.format(path, input_date,
                                                      adzan_token))
+        print url
         r = requests.get(url)
         for x in range(0, r.json()['items'].__len__()):
             response_json = r.json()['items'][x]
