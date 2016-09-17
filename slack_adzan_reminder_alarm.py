@@ -91,6 +91,7 @@ def generate_24_hour_time_adzan(adzan_token, prayers, location, prayer_day='toda
     fields = []
     attachment = []
     if need_save and os.path.isfile('{}.json'.format(input_date)):
+        adzan_daily = "Tanggal {}".format(input_date)
         with open('{}.json'.format(input_date)) as fp:
             for line in fp:
                 prayer_time_line = line.split(';')
@@ -133,6 +134,7 @@ def generate_24_hour_time_adzan(adzan_token, prayers, location, prayer_day='toda
 
 def parse_command(command, channel):
     if command[0] == 'adzan':
+        print command[1]
         return get_adzan_list(command[1])
 
 def get_adzan_list(prayer_day):
