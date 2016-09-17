@@ -21,14 +21,17 @@ def response_to_command(command, channel):
         are valid commands. If so, then acts on the commands. If not,
         returns back what it needs for clarification.
     """
-    attachment = []
-    response = "Not sure what you mean. Use the *" + EXAMPLE_COMMAND + \
-               "* command with numbers, delimited by spaces."
-    print command
-    response,attachment = parse_command(command, channel)
-    print response, attachment
-    slack_client.api_call("chat.postMessage", channel=channel,
-                          text=response, attachments=attachment, as_user=True)
+    try: 
+        attachment = []
+        response = "Not sure what you mean. Use the *" + EXAMPLE_COMMAND + \
+                   "* command with numbers, delimited by spaces."
+        print command
+        response,attachment = parse_command(command, channel)
+        print response, attachment
+        slack_client.api_call("chat.postMessage", channel=channel,
+                              text=response, attachments=attachment, as_user=True)
+    except Exception as e:
+        print e.msg
 
 
 def parse_slack_output(slack_rtm_output):
