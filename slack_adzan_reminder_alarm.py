@@ -106,7 +106,7 @@ def generate_24_hour_time_adzan(adzan_token, prayers, location, prayer_day='toda
                            '{1}.json?key={2}'.format(location, input_date,
                                                      adzan_token))
         r = requests.get(url)
-        for x in range(0, rs.json()['items'].__len__()):
+        for x in range(0, r.json()['items'].__len__()):
             response_json = r.json()['items'][i]
             print response_json
             if os.path.isfile('{}.json'.format(input_date)):
