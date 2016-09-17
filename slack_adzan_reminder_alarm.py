@@ -90,9 +90,9 @@ def generate_24_hour_time_adzan(adzan_token, prayers, location, prayer_day='toda
     
     fields = []
     attachment = []
-    if need_save and os.path.isfile('{}.json'.format(input_date)):
+    if need_save and os.path.isfile('{}.json'.format(input_date+"_"+location)):
         adzan_daily = "Tanggal {}".format(input_date)
-        with open('{}.json'.format(input_date)) as fp:
+        with open('{}.json'.format(input_date+"_"+location)) as fp:
             for line in fp:
                 prayer_time_line = line.split(';')
                 fields.append({"title": prayer_time_line[0].upper(),
@@ -125,7 +125,7 @@ def generate_24_hour_time_adzan(adzan_token, prayers, location, prayer_day='toda
                 prayer_arr.append('{0};{1}'.format(i, prayer_list[i]))
             attachment.append({'title': adzan_daily, 'fields': fields, 'mrkdwn_in': ["text"]})
             if need_save:
-                with open('{}.json'.format(input_date), 'w') as prayer_file:
+                with open('{}.json'.format(input_date+"_"+location), 'w') as prayer_file:
                     for praytime in prayer_arr:
                         prayer_file.write(praytime+"\n")
                     
@@ -134,11 +134,13 @@ def generate_24_hour_time_adzan(adzan_token, prayers, location, prayer_day='toda
 
 def parse_command(command, channel):
     if command[0] == 'adzan':
-        print command[1]
-        return get_adzan_list(command[1])
+        location = 'yogyakarta'
+        if command > 2:
+            location = command[2]
+        return get_adzan_list(command[1], location)
 
-def get_adzan_list(prayer_day):
-    return "Jadwal Sholat untuk wilayah Yogyakarta", generate_24_hour_time_adzan(adzan_token, prayer,location='yogyakarta',prayer_day=prayer_day)[1]
+def get_adzan_list(prayer_day,location):
+    return "Jadwal Sholat untuk wilayah Yogyakarta", generate_24_hour_time_adzan(adzan_token, prayer,location,prayer_day)[1]
 
 
 if __name__ == "__main__":
