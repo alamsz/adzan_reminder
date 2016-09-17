@@ -75,15 +75,23 @@ def get_random_ayah_attachment(attachment):
     print attachment
 
 
-def generate_24_hour_time_adzan(adzan_token, prayers, location):
+def generate_24_hour_time_adzan(adzan_token, prayers, location, prayer_day='today'):
     prayer_list = {}
+    need_save = True
     day = datetime.utcnow() + timedelta(hours=7)
     input_date = day.strftime('%d-%m-%Y')
     adzan_daily = "Jadwal Sholat tanggal {} untuk wilayah {}".format(
         input_date, location)
+    if prayer_day == 'tomorrow' or prayer_day == 'besok':
+        day = datetime.utcnow() + timedelta(day=1) + timedelta(hours=7)
+    if prayer_day == 'mingguan' or prayer_day == 'weekly':    
+        input_date = "weekly/{}".format(input_date)
+        adzan_daily = "Jadwal Sholat 7 hari kedepan untuk wilayah {}".format(location)
+        need_save = False
+
     fields = []
     attachment = []
-    if os.path.isfile('{}.json'.format(input_date)):
+    if os.path.isfile('{}.json'.format(input_date)) and need_save:
         print 'file found'
         with open('{}.json'.format(input_date)) as fp:
             for line in fp:
@@ -98,22 +106,35 @@ def generate_24_hour_time_adzan(adzan_token, prayers, location):
                            '{1}.json?key={2}'.format(location, input_date,
                                                      adzan_token))
         r = requests.get(url)
-        response_json = r.json()['items'][0]
-        print 'no file found'
-        with open('{}.json'.format(input_date), 'w') as prayer_file:
-            for i in prayers:
-                input_time = response_json[i]
-                new_time = datetime.strptime(
-                    "{0} {1}".format(input_date, input_time), DATE_FORMAT)
-                prayer_list[i] = new_time.strftime(DATE_FORMAT)
-                prayer_file.write('{0};{1}\n'.format(i, prayer_list[i]))
+        for x in range(0, rs.json()['items'].__len__()):
+            response_json = r.json()['items'][i]
+            print response_json
+            if os.path.isfile('{}.json'.format(input_date)):
+                with open('{}.json'.format(input_date), 'w'):
+                    pass
+            else:
+                print 'no file found'
+            fields =[]
+            with open('{}.json'.format(input_date), 'w') as prayer_file:
+                for i in prayers:
+                    input_time = response_json[i]
+                    new_time = datetime.strptime(
+                        "{0} {1}".format(input_date, input_time), DATE_FORMAT)
+                    prayer_list[i] = new_time.strftime(DATE_FORMAT)
+                    fields.append({"title": i,
+                               "value": prayer_list[i], "short": True})
+                    prayer_file.write('{0};{1}\n'.format(i, prayer_list[i]))
+                attachment.append(
+            {'title': adzan_daily, 'fields': fields, 'mrkdwn_in': ["text"]})
 
     return prayer_list, attachment
 
 def parse_command(command, channel):
-    if command.__len__() > 1 :
-        if command[0] == 'adzan':
-            return get_adzan_list(command[1])
+    if command[0] == 'adzan':
+        return get_adzan_list(command[1])
+
+def get_adzan_list(prayer_day)
+    return "Jadwal Sholat", generate_24_hour_time_adzan(adzan_token, prayer,location='yogyakarta',prayer_day)
 
 
 if __name__ == "__main__":
