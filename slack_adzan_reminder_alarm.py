@@ -134,7 +134,7 @@ def parse_command(command, channel):
         return get_adzan_list(command[1])
 
 def get_adzan_list(prayer_day):
-    return "Jadwal Sholat", generate_24_hour_time_adzan(adzan_token, prayer,location='yogyakarta',prayer_day)
+    return "Jadwal Sholat", generate_24_hour_time_adzan(adzan_token, prayer,location='yogyakarta',prayer_day='today')
 
 
 if __name__ == "__main__":
