@@ -82,7 +82,7 @@ def generate_24_hour_time_adzan(adzan_token, prayers, location, prayer_day='toda
     input_date = day.strftime('%d-%m-%Y')
     
     print prayer_day
-    if prayer_day is 'tomorrow' or prayer_day is 'besok':
+    if prayer_day == 'tomorrow' or prayer_day == 'besok':
         day = day + timedelta(hours=24)
         input_date = day.strftime('%d-%m-%Y')
     if prayer_day == 'mingguan' or prayer_day == 'weekly':    
@@ -134,11 +134,15 @@ def generate_24_hour_time_adzan(adzan_token, prayers, location, prayer_day='toda
     return prayer_list, attachment
 
 def parse_command(command, channel):
-    if command[0] == 'adzan':
-        location = 'yogyakarta'
-        if command.__len__() > 2:
-            location = command[2]
-        return get_adzan_list(command[1], location)
+    try: 
+        if command[0] == 'adzan':
+            location = 'yogyakarta'
+            if command.__len__() > 2:
+                location = command[2]
+            return get_adzan_list(command[1], location)
+    except Exception as e:
+        print e.msg
+
 
 def get_adzan_list(prayer_day,location):
     return "Jadwal Sholat untuk wilayah {}".format(location), generate_24_hour_time_adzan(adzan_token, prayer,location,prayer_day)[1]
