@@ -1,6 +1,5 @@
-gunicorn==19.6.0
-requests==2.11.1
-six==1.10.0
-slackclient==1.0.1
-websocket-client==0.37.0
-wheel==0.24.0
+gunicorn
+requests
+six
+slackclient
+websocket-client

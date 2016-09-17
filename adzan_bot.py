@@ -4,7 +4,7 @@ import os
 import time
 from slackclient import SlackClient
 
-from slack_adzan_reminder_alarm import get_today_adzan
+from slack_adzan_reminder_alarm import parse_command
 
 BOT_ID = os.getenv("BOT_ID")
 AT_BOT = "<@{}>".format(BOT_ID)
@@ -15,7 +15,7 @@ EXAMPLE_COMMAND = "adzan_hari_ini"
 slack_client = SlackClient(os.getenv('SLACK_BOT_TOKEN'))
 
 
-def handle_command(command, channel):
+def response_to_command(command, channel):
     """
         Receives commands directed at the bot and determines if they
         are valid commands. If so, then acts on the commands. If not,
@@ -25,8 +25,7 @@ def handle_command(command, channel):
     response = "Not sure what you mean. Use the *" + EXAMPLE_COMMAND + \
                "* command with numbers, delimited by spaces."
     print command
-    if command.startswith(EXAMPLE_COMMAND):
-        response,attachment = get_today_adzan()
+    response,attachment = parse_command(command, channel)
     print response, attachment
     slack_client.api_call("chat.postMessage", channel=channel,
                           text=response, attachments=attachment, as_user=True)
@@ -46,7 +45,7 @@ def parse_slack_output(slack_rtm_output):
                 print output['text']
                 # return text after the @ mention, whitespace removed
                 return output['text'].replace(AT_BOT,"").replace(":",
-                                                                 "").strip().lower(), output['channel']
+                                                                 "").strip().lower().split(), output['channel']
     return None, None
 
 if __name__ == "__main__":
@@ -57,7 +56,7 @@ if __name__ == "__main__":
         while something:
             command, channel = parse_slack_output(slack_client.rtm_read())
             if command and channel:
-                handle_command(command, channel)
+                response_to_command(command, channel)
             time.sleep(READ_WEBSOCKET_DELAY)
     else:
         print("Connection failed. Invalid Slack token or bot ID?")

@@ -110,5 +110,11 @@ def generate_24_hour_time_adzan(adzan_token, prayers, location):
 
     return prayer_list, attachment
 
+def parse_command(command, channel):
+    if command.__len__() > 1 :
+        if command[0] == 'adzan':
+            return get_adzan_list(command[1])
+
+
 if __name__ == "__main__":
     parse_adzan()
