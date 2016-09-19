@@ -102,4 +102,4 @@ def generate_24_hour_time_adzan(adzan_token, prayers, location):
 
 
 if __name__ == "__main__":
-    parse_adzan()
+    parse_adzan(os.getenv('LOCATION', 'yogyakarta'))
