@@ -31,7 +31,7 @@ def response_to_command(command, channel):
         slack_client.api_call("chat.postMessage", channel=channel,
                               text=response, attachments=attachment, as_user=True)
     except Exception as e:
-        print e.msg
+        print e.message
 
 
 def parse_slack_output(slack_rtm_output):
