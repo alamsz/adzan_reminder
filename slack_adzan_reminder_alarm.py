@@ -133,6 +133,34 @@ def generate_24_hour_time_adzan(adzan_token, prayers, location, prayer_day='toda
 
     return prayer_list, attachment
 
+
+def add_subscriber(command, channel):
+    if command.__len__() > 2:
+        location = command[1]
+        subscriber_data = None
+        response = ""
+        with open('subscriber.json', 'r') as \
+            subscriber_file:
+            subscriber_data = json.load(subscriber_file)
+
+        subscriber_location_data = subscriber_data[location]
+        if subscriber_location_data is None:
+            subscriber_location = location
+            subscriber_location_data = []
+            subscriber_location_data.append({channel:"active"})
+            response = "Successfully subscribed to {}".format(location)
+        else:
+            if channel in subscriber_location_data:
+                response = "Already subscribed to {}".format(location)
+            else:
+                subscriber_location_data.append[{channel:"active"}]
+                subscriber_data[location] = subscriber_location_data
+                "Successfully subscribed to {}".format(location)
+        with open('subscriber.json', 'w') as f:
+            json.dump(subscriber_data, f)
+        return response, []
+
+
 def parse_command(command, channel):
     try: 
         if command[0] == 'adzan':
@@ -140,8 +168,10 @@ def parse_command(command, channel):
             if command.__len__() > 2:
                 location = command[2]
             return get_adzan_list(command[1], location)
+        elif command[0] == 'subscribe':
+            return add_subscriber(command,channel)
     except Exception as e:
-        print e.msg
+        print e.message
 
 
 def get_adzan_list(prayer_day,location):
