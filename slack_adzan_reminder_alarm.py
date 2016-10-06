@@ -135,8 +135,10 @@ def generate_24_hour_time_adzan(adzan_token, prayers, location, prayer_day='toda
 
 
 def add_subscriber(command, channel):
-    if command.__len__() > 2:
+
+    if command.__len__() >= 2:
         location = command[1]
+        print "subscribing to ".format(location)
         subscriber_data = None
         response = ""
         with open('subscriber.json', 'r') as \
