@@ -54,7 +54,6 @@ def parse_slack_output(slack_rtm_output):
                                                                  "").strip().lower().split(), output['channel']
     return None, None
 
-
 def process_subscriber():
     try:
         with open('subscriber.json', 'r') as subscriber_file:
@@ -73,16 +72,15 @@ def process_subscriber():
 
 
 if __name__ == "__main__":
-    process_subscriber()
-    # READ_WEBSOCKET_DELAY = 1 # 1 second delay between reading from firehose
-    # if slack_client.rtm_connect():
-    #     something=True
-    #     print("Adzan_Bot connected and running!")
-    #     while something:
-    #         process_subscriber()
-    #         command, channel = parse_slack_output(slack_client.rtm_read())
-    #         if command and channel:
-    #             response_to_command(command, channel)
-    #         time.sleep(READ_WEBSOCKET_DELAY)
-    # else:
-    #     print("Connection failed. Invalid Slack token or bot ID?")
+    READ_WEBSOCKET_DELAY = 1 # 1 second delay between reading from firehose
+    if slack_client.rtm_connect():
+        something=True
+        print("Adzan_Bot connected and running!")
+        while something:
+            process_subscriber()
+            command, channel = parse_slack_output(slack_client.rtm_read())
+            if command and channel:
+                response_to_command(command, channel)
+            time.sleep(READ_WEBSOCKET_DELAY)
+    else:
+        print("Connection failed. Invalid Slack token or bot ID?")
