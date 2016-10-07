@@ -60,7 +60,7 @@ def process_subscriber():
             subscriber_data = json.load(subscriber_file)
 
         for location in subscriber_data:
-            response, attachment = process_adzan_reminder(location)
+            response, attachment = process_adzan_reminder(location,60)
             if response:
                 for subscriber, value in subscriber_data[location][
                     0].iteritems():

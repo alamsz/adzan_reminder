@@ -3,6 +3,7 @@ import os
 from datetime import datetime, timedelta
 from random import randint
 
+import operator
 import requests
 
 DATE_FORMAT = '%d-%m-%Y %I:%M %p'
@@ -12,49 +13,40 @@ prayer = ["fajr", "dhuhr", "asr", "maghrib", "isha"]
 adzan_token = os.getenv('ADZAN_API_KEY')
 def parse_adzan(location="yogyakarta"):
 
-
-
-    prayer_list, attachment = generate_24_hour_time_adzan(adzan_token, prayer,
-                                                          location)
-
-    today_date = datetime.utcnow() + timedelta(hours=7)
-    print 'time now ' + str(today_date) + '\n'
-    for key, value in prayer_list.items():
-        #print key + '-' + value
-        time_pray = datetime.strptime(value.strip(), DATE_FORMAT)
-
-        if time_pray <= today_date <= time_pray + timedelta(minutes=3):
-
-            text = '<!here|here> Saatnya {0} - {1} untuk daerah {2}'.format(
-                key, time_pray, location)
-
-            # only prints sholat schedule when fajr, otherwise empty attachment
-            if key != 'fajr':
-                attachment = []
-
-            get_random_ayah_attachment(attachment)
-            payload = {'channel': '#sholat-reminder', 'username': 'adzan_bot',
+    text, attachment = process_adzan_reminder(location)
+    return {'channel': '#sholat-reminder', 'username': 'adzan_bot',
                        'text': text, 'attachments': attachment}
 
 
-            return payload, text, attachment
+def mark_time_as_done(location, adzan_key, prayer_list):
+    day = datetime.utcnow() + timedelta(hours=7)
+    input_date = day.strftime('%d-%m-%Y')
+    file_name = '{}.json'.format(input_date + "_" + location)
+    with open(file_name, 'w') as prayer_file:
+        json.dump(prayer_list, prayer_file)
 
-def process_adzan_reminder(location="yogyakarta"):
+
+
+
+def process_adzan_reminder(location="yogyakarta", range=300):
 
     prayer_list, attachment = generate_24_hour_time_adzan(adzan_token, prayer,
                                                           location)
 
     today_date = datetime.utcnow() + timedelta(hours=7)
-    for key, value in prayer_list.items():
-        time_pray = datetime.strptime(value.strip(), DATE_FORMAT)
+    for adzan_key, value in sorted(prayer_list.iteritems(),
+                                   key=operator.itemgetter(1)):
+        time_pray = datetime.strptime(value['time'].strip(), DATE_FORMAT)
 
-        if time_pray <= today_date <= time_pray + timedelta(seconds=3):
+        if (time_pray <= today_date <= time_pray + timedelta(seconds=range))\
+            and value['status'] == 'active':
 
             text = '<!here|here> Saatnya {0} - {1} untuk daerah {2}'.format(
-                key, time_pray, location)
-
+                adzan_key, time_pray, location)
+            prayer_list[adzan_key]['status']='done'
+            mark_time_as_done(location, adzan_key, prayer_list)
             # only prints sholat schedule when fajr, otherwise empty attachment
-            if key != 'fajr':
+            if adzan_key != 'fajr':
                 attachment = []
 
             get_random_ayah_attachment(attachment)
@@ -103,6 +95,7 @@ def generate_24_hour_time_adzan(adzan_token, prayers, location, prayer_day='toda
     need_save = True
     day = datetime.utcnow() + timedelta(hours=7)
     input_date = day.strftime('%d-%m-%Y')
+    prayer_time_line ={}
 
     if prayer_day == 'tomorrow' or prayer_day == 'besok':
         day = day + timedelta(hours=24)
@@ -112,14 +105,15 @@ def generate_24_hour_time_adzan(adzan_token, prayers, location, prayer_day='toda
     
     fields = []
     attachment = []
-    if need_save and os.path.isfile('{}.json'.format(input_date+"_"+location)):
+    file_name = '{}.json'.format(input_date + "_" + location)
+    if need_save and os.path.isfile(file_name):
         adzan_daily = "Tanggal {}".format(input_date)
-        with open('{}.json'.format(input_date+"_"+location)) as fp:
-            for line in fp:
-                prayer_time_line = line.split(';')
-                fields.append({"title": prayer_time_line[0].upper(),
-                               "value": prayer_time_line[1], "short": True})
-                prayer_list[prayer_time_line[0]] = prayer_time_line[1]
+        with open(file_name) as fp:
+            prayer_time_line = json.load(fp)
+            for key, value in sorted(prayer_time_line.iteritems(),
+                                     key=operator.itemgetter(1)):
+                fields.append({"title": key.upper(),
+                               "value": value['time'], "short": True})
         attachment.append(
             {'title': adzan_daily, 'fields': fields, 'mrkdwn_in': ["text"]})
     else:
@@ -136,24 +130,21 @@ def generate_24_hour_time_adzan(adzan_token, prayers, location, prayer_day='toda
             disp_date =  datetime.strptime(response_json['date_for'], '%Y-%m-%d').strftime('%d-%m-%Y')
             adzan_daily = "Tanggal {}".format(disp_date)
             fields =[]
-            prayer_arr = []
+            prayer_time_line = {}
             for i in prayers:
                 disp_time = response_json[i]
-               
                 new_time = datetime.strptime(
                     "{0} {1}".format(disp_date, disp_time), DATE_FORMAT)
                 prayer_list[i] = new_time.strftime(DATE_FORMAT)
                 fields.append({"title": i,
                            "value": prayer_list[i], "short": True})
-                prayer_arr.append('{0};{1}'.format(i, prayer_list[i]))
+                prayer_time_line[i] = {'time': prayer_list[i], 'status': 'active'}
             attachment.append({'title': adzan_daily, 'fields': fields, 'mrkdwn_in': ["text"]})
             if need_save:
-                with open('{}.json'.format(input_date+"_"+location), 'w') as prayer_file:
-                    for praytime in prayer_arr:
-                        prayer_file.write(praytime+"\n")
-                    
+                with open(file_name, 'w') as prayer_file:
+                    json.dump(prayer_time_line, prayer_file)
 
-    return prayer_list, attachment
+    return prayer_time_line, attachment
 
 
 def add_subscriber(command, channel):
