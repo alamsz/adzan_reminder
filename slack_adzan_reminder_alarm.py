@@ -172,7 +172,7 @@ def add_subscriber(command, channel):
         if subscriber_data is None:
             subscriber_data = {location:[{}]}
         elif not location in subscriber_data:
-            subscriber_data[location] = []
+            subscriber_data[location] = [{}]
 
         subscriber_location_data = subscriber_data[location][0]
 
