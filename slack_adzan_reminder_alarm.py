@@ -48,7 +48,7 @@ def process_adzan_reminder(location="yogyakarta"):
     for key, value in prayer_list.items():
         time_pray = datetime.strptime(value.strip(), DATE_FORMAT)
 
-        if time_pray <= today_date <= time_pray + timedelta(seconds=1):
+        if time_pray <= today_date <= time_pray + timedelta(seconds=3):
 
             text = '<!here|here> Saatnya {0} - {1} untuk daerah {2}'.format(
                 key, time_pray, location)
