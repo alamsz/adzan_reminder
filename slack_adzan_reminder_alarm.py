@@ -37,7 +37,30 @@ def parse_adzan(location="yogyakarta"):
                        'text': text, 'attachments': attachment}
 
 
-            return payload
+            return payload, text, attachment
+
+def process_adzan_reminder(location="yogyakarta"):
+
+    prayer_list, attachment = generate_24_hour_time_adzan(adzan_token, prayer,
+                                                          location)
+
+    today_date = datetime.utcnow() + timedelta(hours=7)
+    for key, value in prayer_list.items():
+        time_pray = datetime.strptime(value.strip(), DATE_FORMAT)
+
+        if time_pray <= today_date <= time_pray + timedelta(seconds=1):
+
+            text = '<!here|here> Saatnya {0} - {1} untuk daerah {2}'.format(
+                key, time_pray, location)
+
+            # only prints sholat schedule when fajr, otherwise empty attachment
+            if key != 'fajr':
+                attachment = []
+
+            get_random_ayah_attachment(attachment)
+
+            return text, attachment
+    return None, []
 
 def get_today_adzan(location="yogyakarta"):
     prayer_list, attachment = generate_24_hour_time_adzan(adzan_token, prayer,
@@ -80,8 +103,7 @@ def generate_24_hour_time_adzan(adzan_token, prayers, location, prayer_day='toda
     need_save = True
     day = datetime.utcnow() + timedelta(hours=7)
     input_date = day.strftime('%d-%m-%Y')
-    
-    print prayer_day
+
     if prayer_day == 'tomorrow' or prayer_day == 'besok':
         day = day + timedelta(hours=24)
         input_date = day.strftime('%d-%m-%Y')
@@ -141,23 +163,26 @@ def add_subscriber(command, channel):
         print "subscribing to ".format(location)
         subscriber_data = None
         response = ""
-        with open('subscriber.json', 'r') as \
-            subscriber_file:
-            subscriber_data = json.load(subscriber_file)
+        try:
+            with open('subscriber.json', 'r') as subscriber_file:
+                subscriber_data = json.load(subscriber_file)
+        except:
+            print "read failed"
 
-        subscriber_location_data = subscriber_data[location]
-        if subscriber_location_data is None:
-            subscriber_location = location
-            subscriber_location_data = []
-            subscriber_location_data.append({channel:"active"})
-            response = "Successfully subscribed to {}".format(location)
+        if subscriber_data is None:
+            subscriber_data = {location:[{}]}
+        elif not location in subscriber_data:
+            subscriber_data[location] = []
+
+        subscriber_location_data = subscriber_data[location][0]
+
+        if channel in subscriber_location_data:
+            response = "Already subscribed to {}".format(location)
         else:
-            if channel in subscriber_location_data:
-                response = "Already subscribed to {}".format(location)
-            else:
-                subscriber_location_data.append[{channel:"active"}]
-                subscriber_data[location] = subscriber_location_data
-                "Successfully subscribed to {}".format(location)
+            subscriber_location_data[channel] = "active"
+            response = "Successfully subscribed to {}".format(location)
+        subscriber_data[location][0] = subscriber_location_data
+
         with open('subscriber.json', 'w') as f:
             json.dump(subscriber_data, f)
         return response, []
@@ -179,6 +204,5 @@ def parse_command(command, channel):
 def get_adzan_list(prayer_day,location):
     return "Jadwal Sholat untuk wilayah {}".format(location), generate_24_hour_time_adzan(adzan_token, prayer,location,prayer_day)[1]
 
-
 if __name__ == "__main__":
-    print get_adzan_list("hari ini")
+    print get_today_adzan()
