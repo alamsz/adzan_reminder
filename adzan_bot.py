@@ -3,6 +3,8 @@ import json
 import os
 
 import time
+import traceback
+
 from slackclient import SlackClient
 
 from slack_adzan_reminder_alarm import parse_command, parse_adzan, \
@@ -68,7 +70,8 @@ def process_subscriber():
                         slack_client.api_call("chat.postMessage", channel=subscriber,
                                   text=response, attachments=attachment, as_user=True)
     except:
-        pass
+        print traceback.format_exc()
+
 
 
 if __name__ == "__main__":
