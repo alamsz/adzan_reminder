@@ -8,7 +8,7 @@ import traceback
 from slackclient import SlackClient
 
 from slack_adzan_reminder_alarm import parse_command, parse_adzan, \
-    process_adzan_reminder
+    process_adzan_reminder, get_subscriber
 
 BOT_ID = os.getenv("BOT_ID")
 AT_BOT = "<@{}>".format(BOT_ID)
@@ -58,17 +58,17 @@ def parse_slack_output(slack_rtm_output):
 
 def process_subscriber():
     try:
-        with open('subscriber.json', 'r') as subscriber_file:
-            subscriber_data = json.load(subscriber_file)
+        subscriber_data = get_subscriber()
 
-        for location in subscriber_data:
-            response, attachment = process_adzan_reminder(location,60)
-            if response:
-                for subscriber, value in subscriber_data[location][
-                    0].iteritems():
-                    if value == "active":
-                        slack_client.api_call("chat.postMessage", channel=subscriber,
-                                  text=response, attachments=attachment, as_user=True)
+        if str(subscriber_data) != "no subscriber data":
+            for location in subscriber_data:
+                response, attachment = process_adzan_reminder(location,60)
+                if response:
+                    for subscriber, value in subscriber_data[location][
+                        0].iteritems():
+                        if value == "active":
+                            slack_client.api_call("chat.postMessage", channel=subscriber,
+                                      text=response, attachments=attachment, as_user=True)
     except:
         print traceback.format_exc()
 

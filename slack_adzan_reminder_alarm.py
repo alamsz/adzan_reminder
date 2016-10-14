@@ -1,7 +1,10 @@
 import json
-import os
 from datetime import datetime, timedelta
 from random import randint
+import os
+import redis
+import ast
+
 
 import operator
 import requests
@@ -11,6 +14,7 @@ DATE_FORMAT = '%d-%m-%Y %I:%M %p'
 prayer = ["fajr", "dhuhr", "asr", "maghrib", "isha"]
 
 adzan_token = os.getenv('ADZAN_API_KEY')
+r = redis.from_url(os.environ.get("REDIS_URL"))
 def parse_adzan(location="yogyakarta"):
 
     text, attachment = process_adzan_reminder(location)
@@ -155,9 +159,10 @@ def add_subscriber(command, channel):
         subscriber_data = None
         response = ""
         try:
-            with open('subscriber.json', 'r') as subscriber_file:
-                subscriber_data = json.load(subscriber_file)
-        except:
+            subscriber_data = ast.literal_eval(r.get("subscriber"))
+            print "subscriber {}".format(str(subscriber_data))
+        except Exception as e:
+            print e.message
             print "read failed"
 
         if subscriber_data is None:
@@ -174,9 +179,15 @@ def add_subscriber(command, channel):
             response = "Successfully subscribed to {}".format(location)
         subscriber_data[location][0] = subscriber_location_data
 
-        with open('subscriber.json', 'w') as f:
-            json.dump(subscriber_data, f)
+        r.set("subscriber",subscriber_data)
         return response, []
+
+
+def get_subscriber():
+    try:
+        return ast.literal_eval(r.get("subscriber"))
+    except:
+        return "no subscriber data"
 
 
 def parse_command(command, channel):
@@ -196,4 +207,4 @@ def get_adzan_list(prayer_day,location):
     return "Jadwal Sholat untuk wilayah {}".format(location), generate_24_hour_time_adzan(adzan_token, prayer,location,prayer_day)[1]
 
 if __name__ == "__main__":
-    print get_today_adzan()
+    print add_subscriber("","")
