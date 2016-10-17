@@ -127,8 +127,10 @@ def generate_24_hour_time_adzan(adzan_token, prayers, location, prayer_day='toda
         url = os.path.join('http://muslimsalat.com/{0}/'
                            '{1}.json?key={2}'.format(path, input_date,
                                                      adzan_token))
-        print url
         r = requests.get(url)
+        if r.json()['status_code'] == 0:
+            raise LookupError("Could not find prayer time for location {"
+                              "}".format(location))
         for x in range(0, r.json()['items'].__len__()):
             response_json = r.json()['items'][x]
             disp_date =  datetime.strptime(response_json['date_for'], '%Y-%m-%d').strftime('%d-%m-%Y')
@@ -155,12 +157,16 @@ def add_subscriber(command, channel):
 
     if command.__len__() >= 2:
         location = command[1]
-        print "subscribing to ".format(location)
+        print "subscribing to {}".format(location)
         subscriber_data = None
         response = ""
         try:
+            generate_24_hour_time_adzan(adzan_token, prayer, location)
             subscriber_data = ast.literal_eval(r.get("subscriber"))
             print "subscriber {}".format(str(subscriber_data))
+        except LookupError as le:
+            response = le.message
+            return response, []
         except Exception as e:
             print e.message
             print "read failed"
@@ -207,4 +213,4 @@ def get_adzan_list(prayer_day,location):
     return "Jadwal Sholat untuk wilayah {}".format(location), generate_24_hour_time_adzan(adzan_token, prayer,location,prayer_day)[1]
 
 if __name__ == "__main__":
-    print add_subscriber("","")
+    print add_subscriber(["subscribe", "adzan_bot"], "adzan_bot")
