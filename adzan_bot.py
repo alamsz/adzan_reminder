@@ -77,13 +77,17 @@ def process_subscriber():
 if __name__ == "__main__":
     READ_WEBSOCKET_DELAY = 1 # 1 second delay between reading from firehose
     if slack_client.rtm_connect():
-        something=True
         print("Adzan_Bot connected and running!")
-        while something:
-            process_subscriber()
+        i = 0
+        while True:
+            # only execute this every 30 seconds
+            if i == 30:
+                i = 0
+                process_subscriber()
             command, channel = parse_slack_output(slack_client.rtm_read())
             if command and channel:
                 response_to_command(command, channel)
             time.sleep(READ_WEBSOCKET_DELAY)
+            i+=1
     else:
         print("Connection failed. Invalid Slack token or bot ID?")
