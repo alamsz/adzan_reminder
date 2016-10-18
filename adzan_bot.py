@@ -80,8 +80,8 @@ if __name__ == "__main__":
         print("Adzan_Bot connected and running!")
         i = 0
         while True:
-            # only execute this every 30 seconds
-            if i == 30:
+            # only execute this every 5 seconds
+            if i == 5:
                 i = 0
                 process_subscriber()
             command, channel = parse_slack_output(slack_client.rtm_read())
