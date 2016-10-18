@@ -57,32 +57,33 @@ def parse_slack_output(slack_rtm_output):
     return None, None
 
 def process_subscriber():
-    try:
+
         subscriber_data = get_subscriber()
 
         if str(subscriber_data) != "no subscriber data":
             for location in subscriber_data:
-                response, attachment = process_adzan_reminder(location,60)
-                if response:
-                    for subscriber, value in subscriber_data[location][
-                        0].iteritems():
-                        if value == "active":
-                            slack_client.api_call("chat.postMessage", channel=subscriber,
-                                      text=response, attachments=attachment, as_user=True)
-    except:
-        print traceback.format_exc()
+                try:
+                    response, attachment = process_adzan_reminder(location,60)
+                    if response:
+                        for subscriber, value in subscriber_data[location][
+                            0].iteritems():
+                            if value == "active":
+                                slack_client.api_call("chat.postMessage", channel=subscriber,
+                                          text=response, attachments=attachment, as_user=True)
+                except:
+                    print traceback.format_exc()
 
 
 
 if __name__ == "__main__":
     READ_WEBSOCKET_DELAY = 1 # 1 second delay between reading from firehose
+    i =0
     if slack_client.rtm_connect():
         print("Adzan_Bot connected and running!")
-        i = 0
         while True:
-            # only execute this every 5 seconds
-            if i == 5:
-                i = 0
+            if i==30:
+                i=0
+                # only execute this every 30 seconds
                 process_subscriber()
             command, channel = parse_slack_output(slack_client.rtm_read())
             if command and channel:
