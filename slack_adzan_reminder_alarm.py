@@ -167,10 +167,10 @@ def generate_24_hour_time_adzan(adzan_token, prayers, location, prayer_day='toda
                                "value": new_time.strftime(DATE_FORMAT), "short": True})
                     prayer_time_line[t._names[i]] = {'time': new_time.strftime(DATE_FORMAT), 'status': 'active'}
 
-                    attachment.append({'title': adzan_daily, 'fields': fields, 'mrkdwn_in': ["text"]})
-                    if need_save:
-                        with open(file_name, 'w') as prayer_file:
-                            json.dump(prayer_time_line, prayer_file)
+                attachment.append({'title': adzan_daily, 'fields': fields, 'mrkdwn_in': ["text"]})
+                if need_save:
+                    with open(file_name, 'w') as prayer_file:
+                        json.dump(prayer_time_line, prayer_file)
         except:
             raise LookupError("Unable to find location {} or the "
                               "keyword not found".format(location))
