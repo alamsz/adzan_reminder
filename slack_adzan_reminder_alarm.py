@@ -1,5 +1,6 @@
 import json
 from datetime import datetime, timedelta
+import datetime as date_time
 from random import randint
 import os
 import redis
@@ -8,8 +9,10 @@ import ast
 
 import operator
 import requests
+from geopy import Nominatim
+from iclib import salat
 
-DATE_FORMAT = '%d-%m-%Y %I:%M %p'
+DATE_FORMAT = '%d-%m-%Y %H:%M:%S'
 
 prayer = ["fajr", "dhuhr", "asr", "maghrib", "isha"]
 
@@ -110,12 +113,14 @@ def generate_24_hour_time_adzan(adzan_token, prayers, location, prayer_day='toda
     attachment = []
     file_name = '{}.json'.format(input_date + "_" + location)
     if need_save and os.path.isfile(file_name):
-        adzan_daily = "Tanggal {}".format(input_date)
         with open(file_name) as fp:
             prayer_time_line = json.load(fp)
+            # adzan_daily = prayer_time_line['title']
+            adzan_daily =prayer_time_line['title']
             for key, value in sorted(prayer_time_line.iteritems(),
                                      key=operator.itemgetter(1)):
-                fields.append({"title": key.upper(),
+                if key != 'title':
+                    fields.append({"title": key.upper(),
                                "value": value['time'], "short": True})
         attachment.append(
             {'title': adzan_daily, 'fields': fields, 'mrkdwn_in': ["text"]})
@@ -123,34 +128,52 @@ def generate_24_hour_time_adzan(adzan_token, prayers, location, prayer_day='toda
         path = location
         if not need_save:
             path = location+"/weekly"
-        url = os.path.join('http://muslimsalat.com/{0}/'
-                           '{1}/3.json?key={2}'.format(path, input_date,
-                                                     adzan_token))
-        r = requests.get(url)
-        if r.json()['status_code'] == 0:
-            raise LookupError("Could not find prayer time for location {"
-                              "}".format(location))
-        for x in range(0, r.json()['items'].__len__()):
-            response_json = r.json()['items'][x]
-            disp_date =  datetime.strptime(response_json['date_for'], '%Y-%m-%d').strftime('%d-%m-%Y')
-            adzan_daily = "Tanggal {}".format(disp_date)
-            fields =[]
-            prayer_time_line = {}
-            for i in prayers:
-                disp_time = response_json[i]
-                new_time = datetime.strptime(
-                    "{0} {1}".format(disp_date, disp_time), DATE_FORMAT)
-                # workaround for the issue in asr
-                if i == 'asr':
-                    new_time = new_time - timedelta(hours=1)
-                prayer_list[i] = new_time.strftime(DATE_FORMAT)
-                fields.append({"title": i,
-                           "value": prayer_list[i], "short": True})
-                prayer_time_line[i] = {'time': prayer_list[i], 'status': 'active'}
-            attachment.append({'title': adzan_daily, 'fields': fields, 'mrkdwn_in': ["text"]})
-            if need_save:
-                with open(file_name, 'w') as prayer_file:
-                    json.dump(prayer_time_line, prayer_file)
+        # url = os.path.join('http://muslimsalat.com/{0}/'
+        #                    '{1}/3.json?key={2}'.format(path, input_date,
+        #                                              adzan_token))
+        # r = requests.get(url)
+        # if r.json()['status_code'] == 0:
+        try:
+            geolocator = Nominatim()
+            geo_location = geolocator.geocode(location)
+            if geo_location is None:
+                raise Exception("")
+            else:
+                c = (salat.TimeCalculator().date(day)
+
+                    # latitude, longitude, altitude/height, timezone
+                    .location(geo_location.latitude, geo_location.longitude,
+                              geo_location.altitude, +7)
+                    .method('muhammadiyah'))
+                t = c.calculate()
+                prayer_time_line = {}
+                adzan_daily = "Jadwal Sholat Tanggal {0} untuk {1}".format(
+                    input_date, geo_location._address)
+                prayer_time_line['title'] = adzan_daily
+                for i in range (0, t._names.__len__()):
+                    pray_time = t.get_hm(i)
+                    lst = list(pray_time)
+                    if lst[0] >= 24:
+                        lst[0] = lst[0] - 24
+                    pray_time = tuple(lst)
+
+                    fields =[]
+                    new_time = datetime.strptime(
+                        "{0} {1}".format(input_date, str(date_time.time(*pray_time))),
+                        DATE_FORMAT)
+                    # workaround for the issue in asr
+
+                    fields.append({"title": t._names[i],
+                               "value": new_time.strftime(DATE_FORMAT), "short": True})
+                    prayer_time_line[t._names[i]] = {'time': new_time.strftime(DATE_FORMAT), 'status': 'active'}
+
+                    attachment.append({'title': adzan_daily, 'fields': fields, 'mrkdwn_in': ["text"]})
+                    if need_save:
+                        with open(file_name, 'w') as prayer_file:
+                            json.dump(prayer_time_line, prayer_file)
+        except:
+            raise LookupError("Unable to find location {} or the "
+                              "keyword not found".format(location))
 
     return prayer_time_line, attachment
 
@@ -215,4 +238,5 @@ def get_adzan_list(prayer_day,location):
     return "Jadwal Sholat untuk wilayah {}".format(location), generate_24_hour_time_adzan(adzan_token, prayer,location,prayer_day)[1]
 
 if __name__ == "__main__":
-    print generate_24_hour_time_adzan(adzan_token, prayer, 'yogyakarta')
+    print generate_24_hour_time_adzan(adzan_token, prayer,"yogyakarta",
+                                      "weekly")

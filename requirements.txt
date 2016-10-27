@@ -4,3 +4,4 @@ six
 slackclient
 websocket-client
 redis
+geopy
