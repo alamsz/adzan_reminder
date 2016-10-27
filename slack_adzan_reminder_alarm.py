@@ -41,9 +41,6 @@ def process_adzan_reminder(location="yogyakarta", range=300):
     for adzan_key, value in sorted(prayer_list.iteritems(),
                                    key=operator.itemgetter(1)):
         time_pray = datetime.strptime(value['time'].strip(), DATE_FORMAT)
-        # workaround for the issue in asr
-        if adzan_key == 'asr':
-            time_pray = time_pray - timedelta(seconds=360)
         if (time_pray <= today_date <= time_pray + timedelta(seconds=range))\
             and value['status'] == 'active':
 
@@ -143,6 +140,9 @@ def generate_24_hour_time_adzan(adzan_token, prayers, location, prayer_day='toda
                 disp_time = response_json[i]
                 new_time = datetime.strptime(
                     "{0} {1}".format(disp_date, disp_time), DATE_FORMAT)
+                # workaround for the issue in asr
+                if i == 'asr':
+                    new_time = new_time - timedelta(hours=1)
                 prayer_list[i] = new_time.strftime(DATE_FORMAT)
                 fields.append({"title": i,
                            "value": prayer_list[i], "short": True})
