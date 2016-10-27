@@ -43,21 +43,22 @@ def process_adzan_reminder(location="yogyakarta", range=300):
     today_date = datetime.utcnow() + timedelta(hours=7)
     for adzan_key, value in sorted(prayer_list.iteritems(),
                                    key=operator.itemgetter(1)):
-        time_pray = datetime.strptime(value['time'].strip(), DATE_FORMAT)
-        if (time_pray <= today_date <= time_pray + timedelta(seconds=range))\
-            and value['status'] == 'active':
+        if adzan_key != 'title':
+            time_pray = datetime.strptime(value['time'].strip(), DATE_FORMAT)
+            if (time_pray <= today_date <= time_pray + timedelta(seconds=range))\
+                and value['status'] == 'active':
 
-            text = '<!here|here> Saatnya {0} - {1} untuk daerah {2}'.format(
-                adzan_key, time_pray, location)
-            prayer_list[adzan_key]['status']='done'
-            mark_time_as_done(location, adzan_key, prayer_list)
-            # only prints sholat schedule when fajr, otherwise empty attachment
-            if adzan_key != 'fajr':
-                attachment = []
+                text = '<!here|here> Saatnya {0} - {1} untuk daerah {2}'.format(
+                    adzan_key, time_pray, prayer_list['title'])
+                prayer_list[adzan_key]['status']='done'
+                mark_time_as_done(location, adzan_key, prayer_list)
+                # only prints sholat schedule when fajr, otherwise empty attachment
+                if adzan_key != 'fajr':
+                    attachment = []
 
-            get_random_ayah_attachment(attachment)
+                get_random_ayah_attachment(attachment)
 
-            return text, attachment
+                return text, attachment
     return None, []
 
 def get_today_adzan(location="yogyakarta"):
@@ -128,11 +129,6 @@ def generate_24_hour_time_adzan(adzan_token, prayers, location, prayer_day='toda
         path = location
         if not need_save:
             path = location+"/weekly"
-        # url = os.path.join('http://muslimsalat.com/{0}/'
-        #                    '{1}/3.json?key={2}'.format(path, input_date,
-        #                                              adzan_token))
-        # r = requests.get(url)
-        # if r.json()['status_code'] == 0:
         try:
             geolocator = Nominatim()
             geo_location = geolocator.geocode(location)
@@ -150,14 +146,13 @@ def generate_24_hour_time_adzan(adzan_token, prayers, location, prayer_day='toda
                 adzan_daily = "Jadwal Sholat Tanggal {0} untuk {1}".format(
                     input_date, geo_location._address)
                 prayer_time_line['title'] = adzan_daily
+                fields =[]
                 for i in range (0, t._names.__len__()):
                     pray_time = t.get_hm(i)
                     lst = list(pray_time)
                     if lst[0] >= 24:
                         lst[0] = lst[0] - 24
                     pray_time = tuple(lst)
-
-                    fields =[]
                     new_time = datetime.strptime(
                         "{0} {1}".format(input_date, str(date_time.time(*pray_time))),
                         DATE_FORMAT)
@@ -239,4 +234,4 @@ def get_adzan_list(prayer_day,location):
 
 if __name__ == "__main__":
     print generate_24_hour_time_adzan(adzan_token, prayer,"yogyakarta",
-                                      "weekly")
+                                      "today")
