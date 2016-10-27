@@ -143,9 +143,10 @@ def generate_24_hour_time_adzan(adzan_token, prayers, location, prayer_day='toda
                     .method('muhammadiyah'))
                 t = c.calculate()
                 prayer_time_line = {}
-                adzan_daily = "Jadwal Sholat Tanggal {0} untuk {1}".format(
-                    input_date, geo_location._address)
+                adzan_daily = "{0}".format(geo_location._address)
                 prayer_time_line['title'] = adzan_daily
+                adzan_daily = "Jadwal Sholat Tanggal {0} untuk ".format(
+                    input_date) + adzan_daily
                 fields =[]
                 for i in range (0, t._names.__len__()):
                     pray_time = t.get_hm(i)
