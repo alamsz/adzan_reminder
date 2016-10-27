@@ -41,7 +41,9 @@ def process_adzan_reminder(location="yogyakarta", range=300):
     for adzan_key, value in sorted(prayer_list.iteritems(),
                                    key=operator.itemgetter(1)):
         time_pray = datetime.strptime(value['time'].strip(), DATE_FORMAT)
-
+        # workaround for the issue in asr
+        if adzan_key == 'asr':
+            time_pray = time_pray - timedelta(seconds=360)
         if (time_pray <= today_date <= time_pray + timedelta(seconds=range))\
             and value['status'] == 'active':
 
@@ -125,7 +127,7 @@ def generate_24_hour_time_adzan(adzan_token, prayers, location, prayer_day='toda
         if not need_save:
             path = location+"/weekly"
         url = os.path.join('http://muslimsalat.com/{0}/'
-                           '{1}.json?key={2}'.format(path, input_date,
+                           '{1}/3.json?key={2}'.format(path, input_date,
                                                      adzan_token))
         r = requests.get(url)
         if r.json()['status_code'] == 0:
@@ -213,4 +215,4 @@ def get_adzan_list(prayer_day,location):
     return "Jadwal Sholat untuk wilayah {}".format(location), generate_24_hour_time_adzan(adzan_token, prayer,location,prayer_day)[1]
 
 if __name__ == "__main__":
-    print add_subscriber(["subscribe", "adzan_bot"], "adzan_bot")
+    print generate_24_hour_time_adzan(adzan_token, prayer, 'yogyakarta')
