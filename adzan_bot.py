@@ -58,7 +58,7 @@ def parse_slack_output(slack_rtm_output):
 
 def process_subscriber():
 
-        subscriber_data = get_subscriber()
+        subscriber_data, attachment = get_subscriber()
 
         if str(subscriber_data) != "no subscriber data":
             for location in subscriber_data:

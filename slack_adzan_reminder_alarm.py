@@ -17,7 +17,7 @@ DATE_FORMAT = '%d-%m-%Y %H:%M:%S'
 prayer = ["fajr", "dhuhr", "asr", "maghrib", "isha"]
 
 adzan_token = os.getenv('ADZAN_API_KEY')
-r = redis.from_url(os.environ.get("REDIS_URL"))
+redis_db = redis.from_url(os.environ.get("REDIS_URL"))
 def parse_adzan(location="yogyakarta"):
 
     text, attachment = process_adzan_reminder(location)
@@ -183,7 +183,7 @@ def add_subscriber(command, channel):
         response = ""
         try:
             generate_24_hour_time_adzan(adzan_token, prayer, location)
-            subscriber_data = ast.literal_eval(r.get("subscriber"))
+            subscriber_data = ast.literal_eval(redis_db.get("subscriber"))
             print "subscriber {}".format(str(subscriber_data))
         except LookupError as le:
             response = le.message
@@ -206,15 +206,15 @@ def add_subscriber(command, channel):
             response = "Successfully subscribed to {}".format(location)
         subscriber_data[location][0] = subscriber_location_data
 
-        r.set("subscriber",subscriber_data)
+        redis_db.set("subscriber", subscriber_data)
         return response, []
 
 
 def get_subscriber():
     try:
-        return ast.literal_eval(r.get("subscriber"))
+        return ast.literal_eval(redis_db.get("subscriber")), []
     except:
-        return "no subscriber data"
+        return "no subscriber data", []
 
 
 def parse_command(command, channel):
@@ -226,6 +226,8 @@ def parse_command(command, channel):
             return get_adzan_list(command[1], location)
         elif command[0] == 'subscribe':
             return add_subscriber(command,channel)
+        elif command[0] == 'list_subscriber':
+            return get_subscriber()
     except Exception as e:
         print e.message
 
