@@ -196,7 +196,7 @@ def force_set_subscriber(command, channel):
         subscriber_location_data = subscriber_data[location][0]
 
         for new_ch in new_channel:
-            subscriber_location_data[new_ch] = "active"
+            subscriber_location_data[new_ch.upper()] = "active"
             response = "Successfully subscribed to {}".format(location)
         subscriber_data[location][0] = subscriber_location_data
 
