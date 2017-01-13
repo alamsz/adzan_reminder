@@ -173,6 +173,38 @@ def generate_24_hour_time_adzan(adzan_token, prayers, location, prayer_day='toda
 
     return prayer_time_line, attachment
 
+def force_set_subscriber(command, channel):
+
+    if command.__len__() >= 2:
+        location = command[1]
+        new_channel = command[2]
+        print "subscribing to {}".format(location)
+        subscriber_data = None
+        response = ""
+        try:
+            subscriber_data = ast.literal_eval(redis_db.get("subscriber"))
+            print "subscriber {}".format(str(subscriber_data))
+        except LookupError as le:
+            response = le.message
+            return response, []
+        except Exception as e:
+            print e.message
+            print "read failed"
+
+
+        subscriber_data[location] = [{}]
+        subscriber_location_data = subscriber_data[location][0]
+
+        if channel in subscriber_location_data and subscriber_location_data[
+            channel]=="active":
+            response = "Already subscribed to {}".format(location)
+        else:
+            subscriber_location_data[new_channel] = "active"
+            response = "Successfully subscribed to {}".format(location)
+        subscriber_data[location][0] = subscriber_location_data
+
+        redis_db.set("subscriber", subscriber_data)
+        return response, []
 
 def add_subscriber(command, channel):
 
@@ -230,7 +262,7 @@ def remove_subscriber(command, channel):
                 subscriber_data[location][0]:
             subscriber_location_data = subscriber_data[location][0]
             subscriber_location_data[channel] = "inactive"
-            response = "Successfully subscribed to {}".format(location)
+            response = "Successfully unsubscribed to {}".format(location)
             subscriber_data[location][0] = subscriber_location_data
             redis_db.set("subscriber", subscriber_data)
         else:
@@ -254,6 +286,8 @@ def parse_command(command, channel):
             return get_adzan_list(command[1], location)
         elif command[0] == 'subscribe':
             return add_subscriber(command,channel)
+        elif command[0] == 'force_subscribe':
+            return force_set_subscriber(command,channel)
         elif command[0] == 'unsubscribe':
             return remove_subscriber(command,channel)
         elif command[0] == 'list_subscriber':
