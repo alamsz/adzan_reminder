@@ -173,11 +173,12 @@ def generate_24_hour_time_adzan(adzan_token, prayers, location, prayer_day='toda
 
     return prayer_time_line, attachment
 
+
 def force_set_subscriber(command, channel):
 
     if command.__len__() >= 2:
         location = command[1]
-        new_channel = command[2]
+        new_channel = str(command[2]).split(",")
         print "subscribing to {}".format(location)
         subscriber_data = None
         response = ""
@@ -191,20 +192,17 @@ def force_set_subscriber(command, channel):
             print e.message
             print "read failed"
 
-
         subscriber_data[location] = [{}]
         subscriber_location_data = subscriber_data[location][0]
 
-        if channel in subscriber_location_data and subscriber_location_data[
-            channel]=="active":
-            response = "Already subscribed to {}".format(location)
-        else:
-            subscriber_location_data[new_channel] = "active"
+        for new_ch in new_channel:
+            subscriber_location_data[new_ch] = "active"
             response = "Successfully subscribed to {}".format(location)
         subscriber_data[location][0] = subscriber_location_data
 
         redis_db.set("subscriber", subscriber_data)
         return response, []
+
 
 def add_subscriber(command, channel):
 
@@ -241,6 +239,7 @@ def add_subscriber(command, channel):
 
         redis_db.set("subscriber", subscriber_data)
         return response, []
+
 
 def remove_subscriber(command, channel):
 
