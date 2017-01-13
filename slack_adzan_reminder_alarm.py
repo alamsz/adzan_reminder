@@ -199,7 +199,8 @@ def add_subscriber(command, channel):
 
         subscriber_location_data = subscriber_data[location][0]
 
-        if channel in subscriber_location_data:
+        if channel in subscriber_location_data and subscriber_location_data[
+            channel]=="active":
             response = "Already subscribed to {}".format(location)
         else:
             subscriber_location_data[channel] = "active"
