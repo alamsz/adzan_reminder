@@ -228,7 +228,7 @@ def remove_subscriber(command, channel):
             print "read failed"
 
         if subscriber_data and location in subscriber_data and channel in \
-                subscriber_data[location]:
+                subscriber_data[location][0]:
             subscriber_location_data = subscriber_data[location][0]
             subscriber_location_data[channel] = "inactive"
             response = "Successfully subscribed to {}".format(location)
