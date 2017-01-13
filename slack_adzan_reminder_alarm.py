@@ -216,8 +216,6 @@ def remove_subscriber(command, channel):
         location = command[1]
         print "removing subscription to {}".format(location)
         subscriber_data = None
-        response = ""
-        subscriber_location_data = None
         try:
             subscriber_data = ast.literal_eval(redis_db.get("subscriber"))
             print "subscriber {}".format(str(subscriber_data))
@@ -233,11 +231,10 @@ def remove_subscriber(command, channel):
             subscriber_location_data = subscriber_data[location][0]
             subscriber_location_data[channel] = "inactive"
             response = "Successfully subscribed to {}".format(location)
+            subscriber_data[location][0] = subscriber_location_data
+            redis_db.set("subscriber", subscriber_data)
         else:
             response = "User/Channel not subscribed to {}".format(location)
-
-        subscriber_data[location][0] = subscriber_location_data
-        redis_db.set("subscriber", subscriber_data)
         return response, []
 
 
