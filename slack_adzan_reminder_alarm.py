@@ -78,7 +78,8 @@ def get_random_ayah_attachment(attachment):
 
         day = datetime.utcnow() + timedelta(hours=7)
         threshold = int(day.strftime('%Y%m%d'))
-        random_ayah = 1 if threshold - DATE_THRESHOLD > 6236 else threshold - DATE_THRESHOLD
+        random_ayah = 1 if (threshold - DATE_THRESHOLD) % 6236 == 0 else \
+            (threshold - DATE_THRESHOLD) + 1
         r_arab = requests.get('http://api.globalquran.com/ayah/{'
                               '0}/quran-simple'.format(random_ayah))
         r_terjemah = requests.get('http://api.globalquran.com/ayah/{'
