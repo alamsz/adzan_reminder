@@ -12,6 +12,8 @@ import requests
 from geopy import Nominatim
 from iclib import salat
 
+DATE_THRESHOLD = 20170113
+
 DATE_FORMAT = '%d-%m-%Y %H:%M:%S'
 
 prayer = ["fajr", "dhuhr", "asr", "maghrib", "isha"]
@@ -31,8 +33,6 @@ def mark_time_as_done(location, adzan_key, prayer_list):
     file_name = '{}.json'.format(input_date + "_" + location)
     with open(file_name, 'w') as prayer_file:
         json.dump(prayer_list, prayer_file)
-
-
 
 
 def process_adzan_reminder(location="yogyakarta", range=300):
@@ -75,7 +75,10 @@ def post_adzan(location="yogyakarta"):
 
 def get_random_ayah_attachment(attachment):
     try:
-        random_ayah = randint(1, 6236)
+
+        day = datetime.utcnow() + timedelta(hours=7)
+        threshold = int(day.strftime('%Y%m%d'))
+        random_ayah = 1 if threshold - DATE_THRESHOLD > 6236 else threshold - DATE_THRESHOLD
         r_arab = requests.get('http://api.globalquran.com/ayah/{'
                               '0}/quran-simple'.format(random_ayah))
         r_terjemah = requests.get('http://api.globalquran.com/ayah/{'
@@ -83,7 +86,8 @@ def get_random_ayah_attachment(attachment):
         quran = r_arab.json()['quran']['quran-simple'][str(random_ayah)]
         lit = r_terjemah.json()['quran']['id.muntakhab'][str(random_ayah)]
 
-        ayah = 'Surah {0} Ayah {1} '.format(quran['surah'], quran['ayah'])
+        ayah = '[ODOA] Surah {0} Ayah {1} '.format(quran['surah'],
+                                                   quran['ayah'])
         audio = 'http://audio.globalquran.com/ar.abdulbasitmurattal/mp3' \
                 '/64kbs/{0}.mp3'.format(random_ayah)
         fields = []
