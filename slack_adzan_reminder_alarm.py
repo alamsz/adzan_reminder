@@ -20,6 +20,8 @@ prayer = ["fajr", "dhuhr", "asr", "maghrib", "isha"]
 
 adzan_token = os.getenv('ADZAN_API_KEY')
 redis_db = redis.from_url(os.environ.get("REDIS_URL"))
+
+
 def parse_adzan(location="yogyakarta"):
 
     text, attachment = process_adzan_reminder(location)
@@ -318,6 +320,8 @@ def parse_command(command, channel):
             return remove_subscriber(command,channel)
         elif command[0] == 'list_subscriber':
             return get_subscriber()
+        elif command[0] == 'today_ayah':
+            return "ayah", get_random_ayah_attachment([])
     except Exception as e:
         print e.message
 
