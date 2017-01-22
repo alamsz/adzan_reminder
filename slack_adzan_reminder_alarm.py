@@ -85,39 +85,27 @@ def get_random_ayah_attachment(attachment):
         threshold =  datetime.strptime(DATE_THRESHOLD, '%Y%m%d')
         random_ayah = 1 if int((day - threshold).days) % 6236 == 0 else \
             int((day - threshold).days) + 1
-        print random_ayah
         r_all = requests.get('http://api.alquran.cloud/ayah/{0}/'
                              'editions/quran-simple,id.indonesian'
                              .format(random_ayah))
         quran_response = r_all.json()['data']
-        print quran_response
         surah_ = quran_response[0]['surah']
-        print surah_
 
-        surah_name =  "{0} ({1}) type {2}".format(surah_['englishName'],surah_['englishNameTranslation'],surah_['revelationType'] )
-        print surah_name
+        surah_name =  "{0} ({1}) type {2}".format(surah_['englishName'],
+                                                  surah_['englishNameTranslation'],
+                                                  surah_['revelationType'])
+
         num_of_ayah = surah_['numberOfAyahs']
-        print num_of_ayah
         cur_ayah = quran_response[0]['numberInSurah']
-        print cur_ayah
         quran = quran_response[0]['text']
-        print quran
-        lit = str(quran_response[1]['text'])
-        # r_arab = requests.get('http://api.globalquran.com/ayah/{'
-        #                       '0}/quran-simple'.format(random_ayah))
-        # print r_arab
-        # r_terjemah = requests.get('http://api.globalquran.com/ayah/{'
-        #                           '0}/id.muntakhab'.format(random_ayah))
-        # quran = r_arab.json()['quran']['quran-simple'][str(random_ayah)]
-        # lit = r_terjemah.json()['quran']['id.muntakhab'][str(random_ayah)]
-
+        lit = quran_response[1]['text']
         ayah = '[ODOA] Surah {0} Ayah {1} of {2} '.format(str(surah_name),
                                                    str(cur_ayah), str(num_of_ayah))
         audio = 'http://audio.globalquran.com/ar.abdulbasitmurattal/mp3' \
                 '/64kbs/{0}.mp3'.format(random_ayah)
         fields = []
-        print quran
-        fields.append({"title": quran, "value": lit})
+        # print quran
+        fields.append({"title": lit, "value": ""})
         attachment.append(
             {"title": ayah, "title_link": audio, "fields": fields,
              "mrkdwn_in": ["text"]})
@@ -331,5 +319,4 @@ def get_adzan_list(prayer_day,location):
     return "Jadwal Sholat untuk wilayah {}".format(location), generate_24_hour_time_adzan(adzan_token, prayer,location,prayer_day)[1]
 
 if __name__ == "__main__":
-    response, attachment = parse_command(["today_ayah"], "")
-    print response, attachment
+        print parse_command(["today_ayah"], "adi.alamsz")
