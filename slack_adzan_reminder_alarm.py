@@ -321,7 +321,9 @@ def parse_command(command, channel):
         elif command[0] == 'list_subscriber':
             return get_subscriber()
         elif command[0] == 'today_ayah':
-            return "ayah", get_random_ayah_attachment([])
+            attachment = []
+            get_random_ayah_attachment(attachment)
+            return "ayah", attachment
     except Exception as e:
         print e.message
 
