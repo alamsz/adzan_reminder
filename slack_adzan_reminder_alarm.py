@@ -124,6 +124,7 @@ def get_random_ayah_attachment(attachment):
     except Exception as e:
         print e.message
     print attachment
+    return attachment
 
 
 def generate_24_hour_time_adzan(adzan_token, prayers, location, prayer_day='today'):
