@@ -12,14 +12,14 @@ import requests
 from geopy import Nominatim
 from iclib import salat
 
-DATE_THRESHOLD = 20170113
+DATE_THRESHOLD = "20170113"
 
 DATE_FORMAT = '%d-%m-%Y %H:%M:%S'
 
 prayer = ["fajr", "dhuhr", "asr", "maghrib", "isha"]
 
 adzan_token = os.getenv('ADZAN_API_KEY')
-redis_db = redis.from_url(os.environ.get("REDIS_URL"))
+# redis_db = redis.from_url(os.environ.get("REDIS_URL"))
 def parse_adzan(location="yogyakarta"):
 
     text, attachment = process_adzan_reminder(location)
@@ -61,11 +61,13 @@ def process_adzan_reminder(location="yogyakarta", range=300):
                 return text, attachment
     return None, []
 
+
 def get_today_adzan(location="yogyakarta"):
     prayer_list, attachment = generate_24_hour_time_adzan(adzan_token, prayer,
                                                           location)
     text = 'Jadwal Sholat hari ini'
     return text, attachment
+
 
 def post_adzan(location="yogyakarta"):
     slack_token = os.getenv('SLACK_TOKEN')
@@ -73,15 +75,18 @@ def post_adzan(location="yogyakarta"):
     slack_post_url = 'https://hooks.slack.com/services/{0}'.format(slack_token)
     requests.post(slack_post_url, data=json.dumps(payload))
 
+
 def get_random_ayah_attachment(attachment):
     try:
 
         day = datetime.utcnow() + timedelta(hours=7)
-        threshold = int(day.strftime('%Y%m%d'))
-        random_ayah = 1 if (threshold - DATE_THRESHOLD) % 6236 == 0 else \
-            (threshold - DATE_THRESHOLD) + 1
+        threshold =  datetime.strptime(DATE_THRESHOLD, '%Y%m%d')
+        random_ayah = 1 if int((day - threshold).days) % 6236 == 0 else \
+            int((day - threshold).days) + 1
+        print random_ayah
         r_arab = requests.get('http://api.globalquran.com/ayah/{'
                               '0}/quran-simple'.format(random_ayah))
+        print r_arab
         r_terjemah = requests.get('http://api.globalquran.com/ayah/{'
                                   '0}/id.muntakhab'.format(random_ayah))
         quran = r_arab.json()['quran']['quran-simple'][str(random_ayah)]
@@ -304,5 +309,4 @@ def get_adzan_list(prayer_day,location):
     return "Jadwal Sholat untuk wilayah {}".format(location), generate_24_hour_time_adzan(adzan_token, prayer,location,prayer_day)[1]
 
 if __name__ == "__main__":
-    print generate_24_hour_time_adzan(adzan_token, prayer,"yogyakarta",
-                                      "today")
+    print get_random_ayah_attachment("")
