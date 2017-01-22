@@ -105,7 +105,7 @@ def get_random_ayah_attachment(attachment):
                 '/64kbs/{0}.mp3'.format(random_ayah)
         fields = []
         # print quran
-        fields.append({"title": lit, "value": ""})
+        fields.append({"title": lit, "value": quran})
         attachment.append(
             {"title": ayah, "title_link": audio, "fields": fields,
              "mrkdwn_in": ["text"]})
