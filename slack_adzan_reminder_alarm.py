@@ -102,7 +102,7 @@ def get_random_ayah_attachment(attachment):
         print cur_ayah
         quran = quran_response[0]['text']
         print quran
-        lit = quran_response[1]['text']
+        lit = str(quran_response[1]['text'])
         # r_arab = requests.get('http://api.globalquran.com/ayah/{'
         #                       '0}/quran-simple'.format(random_ayah))
         # print r_arab
@@ -111,16 +111,16 @@ def get_random_ayah_attachment(attachment):
         # quran = r_arab.json()['quran']['quran-simple'][str(random_ayah)]
         # lit = r_terjemah.json()['quran']['id.muntakhab'][str(random_ayah)]
 
-        ayah = '[ODOA] Surah {0} Ayah {1} of {2} '.format(surah_name,
-                                                   cur_ayah, num_of_ayah)
+        ayah = '[ODOA] Surah {0} Ayah {1} of {2} '.format(str(surah_name),
+                                                   str(cur_ayah), str(num_of_ayah))
         audio = 'http://audio.globalquran.com/ar.abdulbasitmurattal/mp3' \
                 '/64kbs/{0}.mp3'.format(random_ayah)
         fields = []
-
-        fields.append({'title': quran, 'value': lit})
+        print quran
+        fields.append({"title": quran, "value": lit})
         attachment.append(
-            {'title': ayah, 'title_link': audio, 'fields': fields,
-             'mrkdwn_in': ["text"]})
+            {"title": ayah, "title_link": audio, "fields": fields,
+             "mrkdwn_in": ["text"]})
     except Exception as e:
         print e.message
     print attachment
@@ -322,9 +322,7 @@ def parse_command(command, channel):
         elif command[0] == 'list_subscriber':
             return get_subscriber()
         elif command[0] == 'today_ayah':
-            attachment = []
-            get_random_ayah_attachment(attachment)
-            return "ayah", attachment
+            return "ayah", get_random_ayah_attachment([])
     except Exception as e:
         print e.message
 
@@ -333,4 +331,5 @@ def get_adzan_list(prayer_day,location):
     return "Jadwal Sholat untuk wilayah {}".format(location), generate_24_hour_time_adzan(adzan_token, prayer,location,prayer_day)[1]
 
 if __name__ == "__main__":
-    print get_random_ayah_attachment([])
+    response, attachment = parse_command(["today_ayah"], "")
+    print response, attachment
